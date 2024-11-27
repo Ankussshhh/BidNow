@@ -1,17 +1,17 @@
 <header class="header">
   <div class="container">
     <div class="logo">
-      <a routerLink="/">BidNow</a> 
+      <a routerLink="/">BidNow</a>
     </div>
     <nav class="nav">
       <ul>
-        <li><a routerLink="/">Home</a></li>
+        <li><a routerLink="/create-bid">Create Bid</a></li>
         <li><a routerLink="/auctions">Auctions</a></li>
         <!-- Conditionally display Login or Sign Out button -->
-        <li *ngIf="!isLoggedIn()">
+        <li *ngIf="!isLoggedIn">
           <a routerLink="/login">Login</a>
         </li>
-        <li *ngIf="isLoggedIn()">
+        <li *ngIf="isLoggedIn">
           <a (click)="signOut()">Sign Out</a>
         </li>
       </ul>

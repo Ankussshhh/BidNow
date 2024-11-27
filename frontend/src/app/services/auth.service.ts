@@ -1,39 +1,47 @@
-// src/app/services/auth.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
+  private apiUrl = 'http://localhost:3000/api/auth'; // API URL
+  private userSubject = new BehaviorSubject<{ isLoggedIn: boolean; name: string | null }>({
+    isLoggedIn: !!localStorage.getItem('token'),
+    name: this.getUserName(),
+  });
 
-  private apiUrl = 'http://localhost:3000/api/auth'; // Your API URL for authentication
+  user$ = this.userSubject.asObservable(); // Observable for components
 
   constructor(private http: HttpClient) {}
 
-  // Sign Up
-  signUp(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/signup`, data);
+  // Set user data after login
+  setUserData(token: string, name: string): void {
+    localStorage.setItem('token', token);
+    localStorage.setItem('name', name);
+    this.userSubject.next({ isLoggedIn: true, name });
   }
 
-  // Login
-  login(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, data);
-  }
-
-  // Logout (removes JWT token)
-  logout(): void {
+  // Clear user data on logout
+  clearUserData(): void {
     localStorage.removeItem('token');
+    localStorage.removeItem('name');
+    this.userSubject.next({ isLoggedIn: false, name: null });
   }
 
-  // Check if the user is logged in (check token)
+  // Get stored user name
+  private getUserName(): string | null {
+    return localStorage.getItem('name');
+  }
+
+  // Logout method
+  logout(): void {
+    this.clearUserData();
+  }
+
+  // Check if the user is logged in
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
-  }
-
-  // Get token (for protected API requests)
-  getToken(): string | null {
-    return localStorage.getItem('token');
   }
 }

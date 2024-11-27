@@ -19,6 +19,7 @@ export class SignupComponent implements OnInit {
 
   ngOnInit(): void {
     this.signupForm = this.fb.group({
+      name: ['', [Validators.required]], // Added Name Field
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
@@ -39,7 +40,6 @@ export class SignupComponent implements OnInit {
   onSubmit() {
     if (this.signupForm.valid) {
       const formData = this.signupForm.value;
-  
       this.http.post('http://localhost:3000/api/auth/signup', formData)
         .subscribe(
           (response: any) => {

@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
   loginForm: FormGroup;
@@ -14,7 +15,8 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -25,18 +27,16 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
-      this.http
-        .post('http://localhost:3000/api/auth/login', { email, password })
-        .subscribe(
-          (response: any) => {
-            // Store the static JWT token in localStorage
-            localStorage.setItem('token', response.token);
-            this.router.navigate(['/']); // Redirect after successful login
-          },
-          (error) => {
-            console.error('Login failed', error);
-          }
-        );
+      this.http.post('http://localhost:3000/api/auth/login', { email, password }).subscribe(
+        (response: any) => {
+          // Pass the user data to AuthService
+          this.authService.setUserData(response.token, response.name);
+          this.router.navigate(['/']); // Redirect to home
+        },
+        (error) => {
+          console.error('Login failed', error);
+        }
+      );
     }
   }
 }
