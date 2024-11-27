@@ -1,0 +1,27 @@
+$primary-color: #ff6f61;  /* Coral color */
+$font-primary: 'Montserrat', sans-serif;
+
+.footer {
+  background-color: #333;
+  color: white;
+  padding: 30px 0;
+  text-align: center;
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  .footer-links {
+    margin-top: 20px;
+    a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-size: 1rem;
+      transition: color 0.3s ease;
+      &:hover {
+        color: $primary-color;
+      }
+    }
+  }
+}

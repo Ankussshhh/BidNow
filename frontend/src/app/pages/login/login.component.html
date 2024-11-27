@@ -1,0 +1,53 @@
+<section class="login-section">
+  <div class="login-container">
+    <div class="login-card">
+      <h2>Welcome to AuctionBazar</h2>
+      <p class="subheading">Your gateway to the best online auctions.</p>
+
+      <form (ngSubmit)="onSubmit()" [formGroup]="loginForm">
+
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            [ngClass]="{'error-input': loginForm.get('email')?.invalid && loginForm.get('email')?.touched}"
+          />
+          <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error-message">
+            Please enter a valid email.
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="Enter your password"
+            [ngClass]="{'error-input': loginForm.get('password')?.invalid && loginForm.get('password')?.touched}"
+          />
+          <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="error-message">
+            Password is required.
+          </div>
+        </div>
+
+        <!-- Forgot Password Link -->
+        <div class="forgot-password">
+          <a routerLink="/forgot-password">Forgot your password?</a>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" [disabled]="loginForm.invalid" class="login-btn">Login</button>
+      </form>
+
+      <div class="signup-link">
+        <p>Don't have an account? <a routerLink="/signup">Sign up</a></p>
+      </div>
+    </div>
+  </div>
+</section>

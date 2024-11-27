@@ -1,0 +1,61 @@
+<section class="signup-section">
+    <div class="signup-container">
+      <div class="signup-card">
+        <h2>Create an Account</h2>
+        <p>Enter your details below to create a new account.</p>
+  
+        <form (ngSubmit)="onSubmit()" [formGroup]="signupForm">
+          <!-- Email Field -->
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              placeholder="Enter your email"
+              [ngClass]="{ 'error-input': signupForm.get('email')?.invalid && signupForm.get('email')?.touched }"
+            />
+            <div *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched" class="error-message">
+              Please enter a valid email address.
+            </div>
+          </div>
+  
+          <!-- Password Field -->
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              formControlName="password"
+              placeholder="Enter your password"
+              [ngClass]="{ 'error-input': signupForm.get('password')?.invalid && signupForm.get('password')?.touched }"
+            />
+            <div *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched" class="error-message">
+              Password must be at least 6 characters long.
+            </div>
+          </div>
+  
+          <!-- Confirm Password Field -->
+          <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              placeholder="Confirm your password"
+              [ngClass]="{ 'error-input': signupForm.get('confirmPassword')?.invalid && signupForm.get('confirmPassword')?.touched }"
+            />
+            <div *ngIf="signupForm.get('confirmPassword')?.invalid && signupForm.get('confirmPassword')?.touched" class="error-message">
+              Please confirm your password.
+            </div>
+          </div>
+  
+          <!-- Submit Button -->
+          <button type="submit" [disabled]="signupForm.invalid" class="submit-btn">
+            Sign Up
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+  

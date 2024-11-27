@@ -1,0 +1,59 @@
+<section class="create-bid-section">
+  <div class="container">
+    <h1>Create a New Auction</h1>
+    <form (ngSubmit)="onSubmit()" class="create-bid-form">
+      <!-- Title Field -->
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input
+          type="text"
+          id="title"
+          [(ngModel)]="bid.title"
+          name="title"
+          required
+          placeholder="Enter auction title"
+        />
+      </div>
+
+      <!-- Description Field -->
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          [(ngModel)]="bid.description"
+          name="description"
+          required
+          placeholder="Enter auction description"
+        ></textarea>
+      </div>
+
+      <!-- Starting Bid Field -->
+      <div class="form-group">
+        <label for="startingBid">Starting Bid</label>
+        <input
+          type="number"
+          id="startingBid"
+          [(ngModel)]="bid.startingBid"
+          name="startingBid"
+          required
+          placeholder="Enter starting bid"
+        />
+      </div>
+
+      <!-- Image URL Field -->
+      <div class="form-group">
+        <label for="imageUrl">Image URL</label>
+        <input
+          type="text"
+          id="imageUrl"
+          [(ngModel)]="bid.imageUrl"
+          name="imageUrl"
+          placeholder="Enter image URL"
+        />
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-submit">Create Auction</button>
+    </form>
+  </div>
+</section>

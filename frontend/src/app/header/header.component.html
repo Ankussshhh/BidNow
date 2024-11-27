@@ -1,0 +1,21 @@
+<header class="header">
+    <div class="container">
+      <div class="logo">
+        <a routerLink="/">AuctionBazar</a>
+      </div>
+      <nav class="nav">
+        <ul>
+          <li><a routerLink="/">Home</a></li>
+          <li><a routerLink="/auctions">Auctions</a></li>
+          <!-- Conditionally display Login or Sign Out button -->
+        <li *ngIf="!isLoggedIn()">
+          <a routerLink="/login">Login</a>
+        </li>
+        <li *ngIf="isLoggedIn()">
+          <a (click)="signOut()">Sign Out</a>
+        </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  

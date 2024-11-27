@@ -1,0 +1,18 @@
+<section class="auctions-section">
+  <div class="container">
+    <h1>Available Auctions</h1>
+    <div class="auctions-grid">
+      <div class="auction-card" *ngFor="let auction of auctions">
+        <div class="image-container">
+          <img [src]="auction.imageUrl" alt="{{ auction.title }}" class="auction-image" />
+        </div>
+        <div class="auction-details">
+          <h3>{{ auction.title }}</h3>
+          <p class="description">{{ auction.description }}</p>
+          <p class="current-bid">Current Bid: INR {{ auction.currentBid }}</p>
+          <button class="bid-btn">Place a Bid</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
