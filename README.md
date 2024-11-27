@@ -92,7 +92,7 @@ PORT=3000
 To start the backend server:
 
 ```bash
-npm start
+npm run dev
 ```
 
 This will run the backend server on `http://localhost:3000`.
@@ -153,7 +153,7 @@ We welcome contributions! If you'd like to contribute to **AuctionBazar**, pleas
 
 ## 💬 Support 💬
 
-If you have any questions or need assistance, feel free to open an issue or contact us via [email](mailto:your-email@example.com).
+If you have any questions or need assistance, feel free to open an issue or contact us via [email](mailto:ankushpatil2002@gmail.com).
 
 ---
 
