@@ -26,13 +26,11 @@ export class HomeComponent implements OnInit {
   fetchAllAuctions(): void {
     this.http.get('http://localhost:3000/api/auctions').subscribe(
       (data: any) => {
-        this.featuredAuctions = this.getRandomAuctions(
-          data.map((auction: any) => ({
-            ...auction,
-            image: `http://localhost:3000${auction.image}`, // Adjust according to your API
-          })),
-          3 // Pick 3 random auctions
-        );
+        console.log('Fetched Auctions:', data);  // Log the response for debugging
+        this.featuredAuctions = this.getRandomAuctions(data.map((auction: any) => ({
+          ...auction,
+          imageUrl: auction.imageUrl  // Use the imageUrl directly
+        })), 3);
       },
       (error) => {
         console.error('Error fetching auctions:', error);

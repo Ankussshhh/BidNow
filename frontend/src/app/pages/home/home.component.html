@@ -16,7 +16,9 @@
     <h2 class="section-title">Featured Auctions</h2>
     <div class="auction-cards">
       <div class="auction-card" *ngFor="let auction of featuredAuctions">
-        <img [src]="auction.image" alt="Auction Item" class="auction-image">
+        <img [src]="auction.imageUrl" alt="Auction Item" class="auction-image" *ngIf="auction.imageUrl" />
+        <!-- Fallback if no image is available -->
+        <div *ngIf="!auction.imageUrl">No image available</div>
         <div class="auction-info">
           <h3 class="auction-title">{{ auction.title }}</h3>
           <p class="auction-description">{{ auction.description }}</p>
