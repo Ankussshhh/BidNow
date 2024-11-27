@@ -3,37 +3,88 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  background-color: #6e7dff;
-  color: white;
+  padding: 15px 30px;
+  background-color: white; /* White background */
+  color: #333; /* Dark text for contrast */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
 }
 
-header h1 {
-  margin: 0;
+header .container {
+  width: 100%;
+  max-width: 1200px; /* Prevent the header from being too wide */
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-nav ul {
+header .logo a {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ff6f61; /* Logo color set to #ff6f61 */
+  text-decoration: none;
+  letter-spacing: 2px;
+}
+
+header .nav ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
+  align-items: center;
 }
 
-nav ul li {
+header .nav ul li {
   margin-left: 20px;
 }
 
-nav ul li button,
-nav ul li a {
-  background-color: transparent;
-  border: none;
-  color: white;
+header .nav ul li a {
   font-size: 16px;
-  cursor: pointer;
+  color: #333; /* Text color changed to dark for better readability */
   text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 5px; /* Rounded corners for the links */
+  transition: background-color 0.3s, color 0.3s;
 }
 
-nav ul li button:hover,
-nav ul li a:hover {
-  color: #5b65e0;
+header .nav ul li a:hover {
+  background-color: #ff6f61; /* Hover effect with the main color */
+  color: white;
+}
+
+header .nav ul li a:focus {
+  outline: none;
+  box-shadow: 0 0 4px rgba(255, 111, 97, 0.6); /* Focus effect with the main color */
+}
+
+header .nav ul li button {
+  background-color: transparent;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  header .container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  header .nav ul {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  header .nav ul li {
+    margin-left: 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  header .logo a {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
 }
