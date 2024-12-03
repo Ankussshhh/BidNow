@@ -29,9 +29,19 @@ export class LoginComponent {
       const { email, password } = this.loginForm.value;
       this.http.post('http://localhost:3000/api/auth/login', { email, password }).subscribe(
         (response: any) => {
-          // Pass the user data to AuthService
-          this.authService.setUserData(response.token, response.name);
-          this.router.navigate(['/']); // Redirect to home
+          // Save user data in localStorage
+          localStorage.setItem('authToken', response.token); // Save the token
+          localStorage.setItem('userData', JSON.stringify({
+            token: response.token,
+            name: response.name,
+            userId: response.userId // Save the userId
+          }));
+
+          // Pass all three required parameters to the setUserData method
+          this.authService.setUserData(response.token, response.name, response.userId);
+
+          // Redirect after login
+          this.router.navigate(['/']); // Redirect to home after login
         },
         (error) => {
           console.error('Login failed', error);

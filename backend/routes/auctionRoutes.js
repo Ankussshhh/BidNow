@@ -1,38 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const Auction = require('../models/Auction'); // Import the Auction model
+const verifyToken = require('../middleware/auth.middleware'); // Token verification middleware
 
-// POST /api/auctions - Create a new auction
-router.post('/', async (req, res) => {
+// POST /api/auctions/create - Create a new auction
+router.post('/create', async (req, res) => {
+  console.log('Incoming request body:', req.body); // Debugging log
+
   try {
-    const { title, description, startingBid, currentBid, imageUrl } = req.body;
+    const { title, description, startingBid, currentBid, imageUrl, userId } = req.body;
 
-    // Validate required fields
-    if (!title || !description || !startingBid) {
-      return res.status(400).json({ message: 'Title, description, and starting bid are required.' });
-    }    
+    // Validation for required fields
+    if (!title || !description || startingBid === undefined || !imageUrl || !userId) {
+      console.error('Validation failed:', { title, description, startingBid, imageUrl, userId });
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
 
-    // Create a new Auction instance
+    // Create a new auction
     const newAuction = new Auction({
       title,
       description,
       startingBid,
-      currentBid: currentBid || startingBid, // Default to starting bid if currentBid is not provided
+      currentBid: currentBid || startingBid, // Set currentBid to startingBid if not provided
       imageUrl,
+      userId,
     });
 
-    // Save the auction to the database
-    const auction = await newAuction.save();
-    res.status(201).json({
-      message: 'Auction created successfully',
-      auction,
-    });
-  } catch (err) {
-    console.error('Error creating auction:', err);
-    res.status(500).json({
-      message: 'Error creating auction',
-      error: err.message || err,
-    });
+    // Save the auction to MongoDB
+    await newAuction.save();
+
+    // Respond with the created auction
+    res.status(201).json(newAuction);
+  } catch (error) {
+    console.error('Error creating auction:', error.message || error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -42,11 +43,8 @@ router.get('/', async (req, res) => {
     const auctions = await Auction.find();
     res.status(200).json(auctions);
   } catch (err) {
-    console.error('Error fetching auctions:', err);
-    res.status(500).json({
-      message: 'Error fetching auctions',
-      error: err.message || err,
-    });
+    console.error('Error fetching auctions:', err.message || err);
+    res.status(500).json({ message: 'Error fetching auctions' });
   }
 });
 
@@ -55,58 +53,67 @@ router.get('/:id', async (req, res) => {
   try {
     const auction = await Auction.findById(req.params.id);
     if (!auction) {
-      return res.status(404).json({ message: 'Auction not found' });
+      return res.status(404).json({ message: 'Auction not found.' });
     }
     res.status(200).json(auction);
   } catch (err) {
-    console.error('Error fetching auction:', err);
-    res.status(500).json({
-      message: 'Error fetching auction',
-      error: err.message || err,
-    });
+    console.error('Error fetching auction:', err.message || err);
+    res.status(500).json({ message: 'Error fetching auction.' });
   }
 });
 
-// DELETE /api/auctions/:id - Delete an auction by ID
-router.delete('/:id', async (req, res) => {
+// DELETE /api/auctions/:id - Delete an auction by ID (with ownership check)
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
-    const auction = await Auction.findByIdAndDelete(req.params.id);
+    const auction = await Auction.findById(req.params.id);
     if (!auction) {
-      return res.status(404).json({ message: 'Auction not found' });
+      return res.status(404).json({ message: 'Auction not found.' });
     }
-    res.status(200).json({ message: 'Auction deleted successfully', auction });
+
+    // Check if the logged-in user is the owner
+    if (auction.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You are not authorized to delete this auction.' });
+    }
+
+    // Delete the auction
+    await auction.remove();
+    res.status(200).json({ message: 'Auction deleted successfully.' });
   } catch (err) {
-    console.error('Error deleting auction:', err);
-    res.status(500).json({
-      message: 'Error deleting auction',
-      error: err.message || err,
-    });
+    console.error('Error deleting auction:', err.message || err);
+    res.status(500).json({ message: 'Error deleting auction.' });
   }
 });
 
-// PUT /api/auctions/:id - Update an auction by ID
-router.put('/:id', async (req, res) => {
+// PUT /api/auctions/:id - Update an auction by ID (with ownership check)
+router.put('/:id', verifyToken, async (req, res) => {
   try {
     const { title, description, startingBid, currentBid, imageUrl } = req.body;
 
-    // Find the auction and update it
-    const auction = await Auction.findByIdAndUpdate(
-      req.params.id,
-      { title, description, startingBid, currentBid, imageUrl },
-      { new: true, runValidators: true }
-    );
-
+    // Find the auction
+    const auction = await Auction.findById(req.params.id);
     if (!auction) {
-      return res.status(404).json({ message: 'Auction not found' });
+      return res.status(404).json({ message: 'Auction not found.' });
     }
 
-    res.status(200).json({ message: 'Auction updated successfully', auction });
+    // Check if the logged-in user is the owner
+    if (auction.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You are not authorized to update this auction.' });
+    }
+
+    // Update auction details
+    auction.title = title || auction.title;
+    auction.description = description || auction.description;
+    auction.startingBid = startingBid || auction.startingBid;
+    auction.currentBid = currentBid || auction.currentBid;
+    auction.imageUrl = imageUrl || auction.imageUrl;
+
+    // Save the updated auction
+    await auction.save();
+
+    res.status(200).json({ message: 'Auction updated successfully.', auction });
   } catch (err) {
-    console.error('Error updating auction:', err);
-    res.status(500).json({
-      message: 'Error updating auction',
-      error: err.message || err,
-    });
+    console.error('Error updating auction:', err.message || err);
+    res.status(500).json({ message: 'Error updating auction.' });
   }
 });
 

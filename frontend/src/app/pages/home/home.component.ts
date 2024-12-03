@@ -26,7 +26,6 @@ export class HomeComponent implements OnInit {
   fetchAllAuctions(): void {
     this.http.get('http://localhost:3000/api/auctions').subscribe(
       (data: any) => {
-        console.log('Fetched Auctions:', data);  // Log the response for debugging
         this.featuredAuctions = this.getRandomAuctions(data.map((auction: any) => ({
           ...auction,
           imageUrl: auction.imageUrl  // Use the imageUrl directly

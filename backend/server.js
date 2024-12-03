@@ -24,7 +24,7 @@ app.use('/api/auctions', auctionRoutes); // Auction routes
 app.use('/api/auth', authRoutes);
 
 // MongoDB Connection
-const DB_URI = process.env.DB_URI || 'mongodb+srv://ankushpatil2002:OlWvXYkbl4B7lk7u@cluster0.wr4w4.mongodb.net/AuctionDB?retryWrites=true&w=majority';
+const DB_URI = process.env.DB_URI || 'mongodb://your-db-uri';
 mongoose
   .connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))

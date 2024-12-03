@@ -7,14 +7,19 @@ import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password
 import { ViewAuctionsComponent } from './pages/view-auctions/view-auctions.component'
 import { ResetPasswordComponent } from './pages/reset-password/reset-password.component'
 import { SignupComponent } from './pages/signup/signup.component'
+import { AuthGuard } from './auth.guard';
+import { MyBidsComponent } from './pages/my-bids/my-bids.component';
+import { EditBidComponent } from './pages/edit-bid/edit-bid.component';
 
 
 const routes: Routes = [
+  { path: 'edit-bid/:id', component: EditBidComponent },
+  { path: 'my-bids', component: MyBidsComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'auctions', component: ViewAuctionsComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'create-bid', component: CreateBidComponent },
+  { path: 'create-bid', component: CreateBidComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },
   { path: '', component: HomeComponent },
 ];

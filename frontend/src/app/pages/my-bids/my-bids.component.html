@@ -1,0 +1,19 @@
+<!-- my-bids.component.html -->
+<div class="my-bids">
+  <h2>My Posted Bids</h2>
+
+  <div *ngIf="userBids.length === 0">
+    <p>No bids found. Create a new bid!</p>
+  </div>
+
+  <div *ngFor="let bid of userBids" class="bid-item">
+    <h3>{{ bid.title }}</h3>
+    <p>{{ bid.description }}</p>
+    <p>Starting Bid: {{ bid.startingBid | currency }}</p>
+    <p>Current Bid: {{ bid.currentBid | currency }}</p>
+
+    <!-- Edit and Delete buttons -->
+    <button (click)="editBid(bid._id)">Edit</button>
+    <button (click)="deleteBid(bid._id)">Delete</button>
+  </div>
+</div>

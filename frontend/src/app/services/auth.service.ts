@@ -1,47 +1,90 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth'; // API URL
+  private apiUrl = 'http://localhost:3000/api/auth'; // Base API URL
   private userSubject = new BehaviorSubject<{ isLoggedIn: boolean; name: string | null }>({
-    isLoggedIn: !!localStorage.getItem('token'),
-    name: this.getUserName(),
+    isLoggedIn: !!localStorage.getItem('authToken'),
+    name: this.getStoredUserName(),
   });
 
-  user$ = this.userSubject.asObservable(); // Observable for components
+  user$ = this.userSubject.asObservable(); // Observable for user data
 
   constructor(private http: HttpClient) {}
 
-  // Set user data after login
-  setUserData(token: string, name: string): void {
-    localStorage.setItem('token', token);
+  /**
+   * Set user data after successful login.
+   * @param token - JWT token
+   * @param name - User's name
+   * @param userId - User's ID
+   */
+  setUserData(token: string, name: string, userId: string): void {
+    localStorage.setItem('authToken', token);
     localStorage.setItem('name', name);
+    localStorage.setItem('userId', userId);
     this.userSubject.next({ isLoggedIn: true, name });
   }
 
-  // Clear user data on logout
+  /**
+   * Clear user data from local storage and update subject.
+   */
   clearUserData(): void {
-    localStorage.removeItem('token');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('name');
+    localStorage.removeItem('userId');
     this.userSubject.next({ isLoggedIn: false, name: null });
   }
 
-  // Get stored user name
-  private getUserName(): string | null {
+  /**
+   * Get stored user name from local storage.
+   * @returns User's name or null if not available.
+   */
+  private getStoredUserName(): string | null {
     return localStorage.getItem('name');
   }
 
-  // Logout method
-  logout(): void {
-    this.clearUserData();
+  /**
+   * Get stored user ID from local storage.
+   * @returns User's ID or null if not available.
+   */
+  getUserId(): string | null {
+    return localStorage.getItem('userId');
   }
 
-  // Check if the user is logged in
+  /**
+   * Check if the user is currently logged in.
+   * @returns True if logged in, otherwise false.
+   */
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem('authToken');
+  }
+
+  /**
+   * Perform login request to the server.
+   * @param email - User's email
+   * @param password - User's password
+   * @returns Observable with the login response
+   */
+  login(email: string, password: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/login`, { email, password }).pipe(
+      tap((response: any) => {
+        // Assuming the response contains token, name, and userId
+        if (response && response.token) {
+          this.setUserData(response.token, response.name, response.userId);
+        }
+      })
+    );
+  }
+
+  /**
+   * Perform logout by clearing user data and notifying observers.
+   */
+  logout(): void {
+    this.clearUserData();
   }
 }

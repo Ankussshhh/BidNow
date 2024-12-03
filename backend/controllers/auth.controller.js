@@ -2,6 +2,7 @@ const User = require('../models/User'); // Import the User model
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const Auction = require('../models/Auction'); // Auction model
 
 // Static JWT Token for demonstration
 const STATIC_TOKEN = 'ZXC1bnmap';  // This is the static token you provided
@@ -28,6 +29,36 @@ exports.signUp = async (req, res) => {
   }
 };
 
+// Create a new auction
+exports.createAuction = async (req, res) => {
+  try {
+    const { title, description, startingBid } = req.body;
+
+    // Ensure the required fields are provided
+    if (!title || !description || !startingBid) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Create a new auction
+    const auction = new Auction({
+      title,
+      description,
+      startingBid,
+      userId: req.user.id, // Assuming you're attaching user info via JWT token
+    });
+
+    await auction.save();
+
+    res.status(201).json({
+      message: 'Auction created successfully',
+      auction,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 // Login Function
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -43,10 +74,12 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials!' });
     }
 
+    // Send userId and other details in the response
     res.status(200).json({
+      userId: user._id,
       message: 'Login successful',
-      token: STATIC_TOKEN,
-      name: user.name // Return name for frontend
+      token: STATIC_TOKEN, // Replace with a dynamically generated JWT in production
+      name: user.name, // Include the user's name
     });
   } catch (err) {
     console.error(err);
