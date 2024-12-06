@@ -48,19 +48,24 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/auctions/:id - Fetch a single auction by ID
-router.get('/:id', async (req, res) => {
+// GET /api/auctions/user/:userId - Fetch all auctions posted by a specific user
+router.get('/user/:userId', async (req, res) => {
   try {
-    const auction = await Auction.findById(req.params.id);
-    if (!auction) {
-      return res.status(404).json({ message: 'Auction not found.' });
+    const userId = req.params.userId;
+    // Fetch auctions by userId
+    const auctions = await Auction.find({ userId });
+
+    if (!auctions.length) {
+      return res.status(404).json({ message: 'No auctions found for this user.' });
     }
-    res.status(200).json(auction);
+
+    res.status(200).json(auctions);
   } catch (err) {
-    console.error('Error fetching auction:', err.message || err);
-    res.status(500).json({ message: 'Error fetching auction.' });
+    console.error('Error fetching auctions by user:', err.message || err);
+    res.status(500).json({ message: 'Error fetching auctions.' });
   }
 });
+
 
 // DELETE route for auction deletion
 router.delete('/auctions/:id', async (req, res) => {

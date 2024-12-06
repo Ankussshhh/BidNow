@@ -10,7 +10,7 @@ export class AuthService {
   private apiUrl = 'http://localhost:3000/api/auth'; // Base API URL
   private userSubject = new BehaviorSubject<{ isLoggedIn: boolean; name: string | null }>({
     isLoggedIn: !!localStorage.getItem('authToken'),
-    name: this.getStoredUserName(), // This will work now because we added the method below
+    name: this.getStoredUserName(),
   });
 
   user$ = this.userSubject.asObservable();
@@ -19,7 +19,6 @@ export class AuthService {
 
   setUserData(token: string, name: string, userId: string): void {
     localStorage.setItem('authToken', token);
-    console.log('Token saved:', token);  // Log to check token
     localStorage.setItem('name', name);
     localStorage.setItem('userId', userId);
     this.userSubject.next({ isLoggedIn: true, name });
@@ -33,9 +32,7 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    const token = localStorage.getItem('authToken');
-    console.log('Retrieved Token:', token);  // Log to check token
-    return token;
+    return localStorage.getItem('authToken');
   }
 
   getUserId(): string | null {
@@ -46,7 +43,15 @@ export class AuthService {
     return !!localStorage.getItem('authToken');
   }
 
-  // Add this method to fix the error
+  // Added method to get user data
+  getUserData(): Observable<{ id: string | null, name: string | null }> {
+    const userData = {
+      id: this.getUserId(),
+      name: this.getStoredUserName(),
+    };
+    return new BehaviorSubject(userData).asObservable();
+  }
+
   private getStoredUserName(): string | null {
     return localStorage.getItem('name');
   }

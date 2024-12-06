@@ -1,19 +1,36 @@
-<!-- my-bids.component.html -->
 <div class="my-bids">
-  <h2>My Posted Bids</h2>
+  <h2 class="title">My Posted Bids</h2>
 
-  <div *ngIf="userBids.length === 0">
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-spinner">
+    <p>Loading your bids...</p>
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error-message">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <!-- No Bids Found Message -->
+  <div *ngIf="userBids.length === 0 && !isLoading" class="no-bids">
     <p>No bids found. Create a new bid!</p>
   </div>
 
-  <div *ngFor="let bid of userBids" class="bid-item">
-    <h3>{{ bid.title }}</h3>
-    <p>{{ bid.description }}</p>
-    <p>Starting Bid: {{ bid.startingBid | currency }}</p>
-    <p>Current Bid: {{ bid.currentBid | currency }}</p>
-
-    <!-- Edit and Delete buttons -->
-    <button (click)="editBid(bid._id)">Edit</button>
-    <button (click)="deleteBid(bid._id)">Delete</button>
+  <!-- Bid Cards -->
+  <div *ngFor="let bid of userBids" class="bid-card">
+    <div class="bid-card-header">
+      <img class="bid-image" [src]="bid.imageUrl" alt="Bid Image" />
+      <h3>{{ bid.title }}</h3>
+    </div>
+    <div class="bid-card-body">
+      <p>{{ bid.description }}</p>
+      <p><strong>Starting Bid:</strong> {{ bid.startingBid | currency }}</p>
+      <p><strong>Current Bid:</strong> {{ bid.currentBid | currency }}</p>
+    </div>
+    <div class="bid-card-footer">
+      <button class="btn edit-btn" (click)="editBid(bid._id)">Edit</button>
+      <button class="btn delete-btn" (click)="deleteBid(bid._id)">Delete</button>
+    </div>
   </div>
 </div>
