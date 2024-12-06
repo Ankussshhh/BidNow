@@ -16,7 +16,7 @@ import { ResetPasswordComponent } from './pages/reset-password/reset-password.co
 import { SignupComponent } from './pages/signup/signup.component';
 import { MyBidsComponent } from './pages/my-bids/my-bids.component';
 import { EditBidComponent } from './pages/edit-bid/edit-bid.component';
-import { AuthInterceptor } from './interceptors/auth.interceptor'; // Import the interceptor
+import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
   declarations: [
@@ -31,7 +31,7 @@ import { AuthInterceptor } from './interceptors/auth.interceptor'; // Import the
     ResetPasswordComponent,
     SignupComponent,
     MyBidsComponent,
-    EditBidComponent
+    EditBidComponent,
   ],
   imports: [
     BrowserModule,

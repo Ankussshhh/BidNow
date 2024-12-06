@@ -5,11 +5,13 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
   userName: string | null = null;
   featuredAuctions: any[] = []; // Stores the featured auctions
+  isLoggedIn = false;
+  isProfileMenuVisible = false; // To toggle profile menu
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -19,6 +21,7 @@ export class HomeComponent implements OnInit {
 
     // Subscribe to user changes to update userName dynamically
     this.authService.user$.subscribe((user) => {
+      this.isLoggedIn = user.isLoggedIn;
       this.userName = user.name;
     });
   }
@@ -26,10 +29,13 @@ export class HomeComponent implements OnInit {
   fetchAllAuctions(): void {
     this.http.get('http://localhost:3000/api/auctions').subscribe(
       (data: any) => {
-        this.featuredAuctions = this.getRandomAuctions(data.map((auction: any) => ({
-          ...auction,
-          imageUrl: auction.imageUrl  // Use the imageUrl directly
-        })), 3);
+        this.featuredAuctions = this.getRandomAuctions(
+          data.map((auction: any) => ({
+            ...auction,
+            imageUrl: auction.imageUrl, // Use the imageUrl directly
+          })),
+          3
+        );
       },
       (error) => {
         console.error('Error fetching auctions:', error);
@@ -43,7 +49,13 @@ export class HomeComponent implements OnInit {
     return shuffled.slice(0, count); // Return the first 'count' auctions
   }
 
-  viewAuction(id: number): void {
-    console.log(`Viewing auction with ID: ${id}`); // Handle auction navigation
+  // Toggle Profile Menu Visibility
+  toggleProfileMenu(): void {
+    this.isProfileMenuVisible = !this.isProfileMenuVisible;
+  }
+
+  // Close Profile Menu
+  closeProfileMenu(): void {
+    this.isProfileMenuVisible = false;
   }
 }

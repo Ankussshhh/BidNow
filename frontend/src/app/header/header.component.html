@@ -7,13 +7,18 @@
       <ul>
         <li><a routerLink="/create-bid">Create Bid</a></li>
         <li><a routerLink="/auctions">Auctions</a></li>
-        <!-- Conditionally display Login or Sign Out button -->
-        <li *ngIf="!isLoggedIn">
-          <a routerLink="/login">Login</a>
+        <li *ngIf="!isLoggedIn"><a routerLink="/login">Login</a></li>
+        <li *ngIf="isLoggedIn" (click)="toggleProfileMenu()">
+          <a href="javascript:void(0)">Hello, {{ userName }}</a>
         </li>
-        <li *ngIf="isLoggedIn">
-          <a (click)="signOut()">Sign Out</a>
-        </li>
+        <!-- Dropdown Menu -->
+        <div *ngIf="isLoggedIn && isProfileMenuVisible" class="profile-menu">
+          <ul>
+            <li><a routerLink="/profile">My Profile</a></li>
+            <li><a routerLink="/my-bids">My Bids</a></li>
+            <li (click)="signOut()">Sign Out</li>
+          </ul>
+        </div>
       </ul>
     </nav>
   </div>

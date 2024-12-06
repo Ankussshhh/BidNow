@@ -62,31 +62,30 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/auctions/:id - Delete a bid by ID with ownership check
-router.delete('/:id', verifyToken, async (req, res) => {
+// DELETE route for auction deletion
+router.delete('/auctions/:id', async (req, res) => {
+  const auctionId = req.params.id;
+
   try {
-    const auctionId = req.params.id;
+    // Log the auctionId to ensure it's being passed correctly
+    console.log('Deleting auction with ID:', auctionId);
 
-    if (!auctionId) {
-      return res.status(400).json({ error: 'Auction ID is required' });
-    }
-
-    const auction = await Auction.findById(auctionId);
+    // Find and delete the auction by ID
+    const auction = await Auction.findByIdAndDelete(auctionId);
 
     if (!auction) {
-      return res.status(404).json({ error: 'Auction not found' });
+      // If the auction is not found, log this and send a 404 response
+      console.error('Auction not found with ID:', auctionId);
+      return res.status(404).json({ message: 'Auction not found' });
     }
 
-    // Check ownership
-    if (auction.userId.toString() !== req.user.id) {
-      return res.status(403).json({ error: 'Unauthorized to delete this auction' });
-    }    
-
-    await auction.remove();
+    // Successfully deleted the auction
+    console.log('Auction deleted successfully:', auction);
     res.status(200).json({ message: 'Auction deleted successfully' });
   } catch (err) {
+    // Log the error and send a 500 response
     console.error('Error deleting auction:', err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 

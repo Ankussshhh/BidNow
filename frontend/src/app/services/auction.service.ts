@@ -6,21 +6,16 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class AuctionService {
-  private apiUrl = 'http://localhost:3000/api/auctions'; // Base API URL
+  private baseUrl = 'http://localhost:3000/api/auctions'; // Base URL for the auctions API
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Delete an auction by its ID.
-   * @param auctionId - ID of the auction to delete.
-   * @param token - JWT token for authentication
-   * @returns Observable with the delete response.
-   */
-  deleteAuction(auctionId: string, token: string) {
-    return this.http.delete(`http://localhost:3000/api/auctions/${auctionId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+  // Delete auction by ID
+  deleteAuction(auctionId: string, token: string): Observable<any> {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
     });
-  } 
+  
+    return this.http.delete(`http://localhost:3000/api/auctions/${auctionId}`, { headers });
+  }
 }

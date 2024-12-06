@@ -6,6 +6,8 @@ const Auction = require('../models/Auction'); // Auction model
 
 // Static JWT Token for demonstration
 const STATIC_TOKEN = 'ZXC1bnmap';  // This is the static token you provided
+const JWT_SECRET = process.env.JWT_SECRET || 'ZXC1bnmap';  // Ensure the JWT secret matches across the app
+
 
 // Sign Up Function
 exports.signUp = async (req, res) => {
@@ -62,28 +64,37 @@ exports.createAuction = async (req, res) => {
 // Login Function
 exports.login = async (req, res) => {
   const { email, password } = req.body;
-
+  
   try {
+    // Find the user by email
     const user = await User.findOne({ email });
+    
     if (!user) {
-      return res.status(400).json({ message: 'User not found!' });
+      return res.status(400).json({ message: 'User not found' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials!' });
+    // Validate the password (assuming you have a password hashing mechanism)
+    const isPasswordValid = await user.comparePassword(password); // You should define comparePassword method on User schema
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid password' });
     }
 
-    // Send userId and other details in the response
-    res.status(200).json({
-      userId: user._id,
+    // Create JWT payload with user details
+    const payload = { id: user._id, email: user.email };  // Add necessary user data to payload
+    
+    // Sign the token
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });  // Token expiration set to 1 hour
+
+    // Send the token back in response
+    return res.status(200).json({
       message: 'Login successful',
-      token: STATIC_TOKEN, // Replace with a dynamically generated JWT in production
-      name: user.name, // Include the user's name
+      token,
+      name: user.name,  // Send name or any other necessary user info
+      userId: user._id,  // Send userId for frontend usage
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Something went wrong!' });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -98,7 +109,12 @@ exports.forgotPassword = async (req, res) => {
     }
 
     // Generate a reset token (use JWT for simplicity)
-    const resetToken = jwt.sign({ userId: user._id }, 'ZXC1bnmap', { expiresIn: '1h' });
+    const resetToken = jwt.sign(
+      { id: user._id },  // Ensure this payload contains required information (e.g., user ID)
+      process.env.JWT_SECRET,  // Make sure this secret is defined and consistent
+      { expiresIn: '1h' }  // Use reasonable expiration
+    );
+    res.json({ token }); 
 
     // Send reset password link via email (using nodemailer)
     const transporter = nodemailer.createTransport({
@@ -159,3 +175,4 @@ exports.resetPassword = async (req, res) => {
 exports.protected = (req, res) => {
   res.status(200).json({ message: 'This is a protected route.' });
 };
+

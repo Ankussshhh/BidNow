@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const authController = require('../controllers/auth.controller');
 const verifyToken = require('../middleware/auth.middleware');
+const Auction = require('../models/Auction'); // Assuming you have an Auction model
 
 const router = express.Router();
 
@@ -56,6 +57,7 @@ router.post('/forgot-password', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Correctly linked route
 router.post('/login', authController.login);
