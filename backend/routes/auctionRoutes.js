@@ -48,6 +48,20 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.get('/:id', async (req, res) => {
+  try {
+    const auction = await Auction.findById(req.params.id);
+    if (!auction) {
+      return res.status(404).json({ message: 'Auction not found.' });
+    }
+    res.status(200).json(auction);
+  } catch (err) {
+    console.error('Error fetching auction:', err.message || err);
+    res.status(500).json({ message: 'Error fetching auction.' });
+  }
+});
+
+
 // GET /api/auctions/user/:userId - Fetch all auctions posted by a specific user
 router.get('/user/:userId', async (req, res) => {
   try {

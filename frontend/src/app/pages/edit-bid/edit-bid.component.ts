@@ -1,4 +1,3 @@
-// edit-bid.component.ts
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -54,5 +53,10 @@ export class EditBidComponent implements OnInit {
         alert('Failed to update bid.');
       }
     );
+  }
+
+  cancelEdit(): void {
+    // This function should either reset the form or navigate away from the page
+    this.router.navigate(['/my-bids']); // Redirect to My Bids page or any other desired route
   }
 }
