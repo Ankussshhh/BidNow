@@ -25,10 +25,12 @@ export class AuthService {
    */
   setUserData(token: string, name: string, userId: string): void {
     localStorage.setItem('authToken', token);
+    console.log('Token saved:', token);  // Debugging log
     localStorage.setItem('name', name);
     localStorage.setItem('userId', userId);
     this.userSubject.next({ isLoggedIn: true, name });
   }
+  
 
   /**
    * Clear user data from local storage and update subject.
@@ -38,6 +40,14 @@ export class AuthService {
     localStorage.removeItem('name');
     localStorage.removeItem('userId');
     this.userSubject.next({ isLoggedIn: false, name: null });
+  }
+
+  /**
+   * Get the stored JWT token from local storage.
+   * @returns JWT token or null if not available.
+   */
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
   }
 
   /**
@@ -73,7 +83,6 @@ export class AuthService {
   login(email: string, password: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, { email, password }).pipe(
       tap((response: any) => {
-        // Assuming the response contains token, name, and userId
         if (response && response.token) {
           this.setUserData(response.token, response.name, response.userId);
         }

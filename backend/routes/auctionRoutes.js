@@ -62,25 +62,31 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/auctions/:id - Delete an auction by ID (with ownership check)
+// DELETE /api/auctions/:id - Delete a bid by ID with ownership check
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
-    const auction = await Auction.findById(req.params.id);
+    const auctionId = req.params.id;
+
+    if (!auctionId) {
+      return res.status(400).json({ error: 'Auction ID is required' });
+    }
+
+    const auction = await Auction.findById(auctionId);
+
     if (!auction) {
-      return res.status(404).json({ message: 'Auction not found.' });
+      return res.status(404).json({ error: 'Auction not found' });
     }
 
-    // Check if the logged-in user is the owner
+    // Check ownership
     if (auction.userId.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'You are not authorized to delete this auction.' });
-    }
+      return res.status(403).json({ error: 'Unauthorized to delete this auction' });
+    }    
 
-    // Delete the auction
     await auction.remove();
-    res.status(200).json({ message: 'Auction deleted successfully.' });
+    res.status(200).json({ message: 'Auction deleted successfully' });
   } catch (err) {
-    console.error('Error deleting auction:', err.message || err);
-    res.status(500).json({ message: 'Error deleting auction.' });
+    console.error('Error deleting auction:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

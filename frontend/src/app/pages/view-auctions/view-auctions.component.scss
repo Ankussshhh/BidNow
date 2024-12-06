@@ -2,6 +2,20 @@
   padding: 2rem;
   background-color: #f1f5f8;
   font-family: 'Poppins', sans-serif;
+
+  .delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .delete-btn:hover {
+    background-color: #c0392b;
+  }  
   
   h1 {
     text-align: center;

@@ -6,11 +6,7 @@ const auctionSchema = new mongoose.Schema({
   startingBid: { type: Number, required: true },
   currentBid: { type: Number, default: 0 },
   imageUrl: { type: String, required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User model
+}, { timestamps: true });
 
 module.exports = mongoose.model('Auction', auctionSchema);

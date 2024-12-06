@@ -2,19 +2,20 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'ZXC1bnmap';  // Ensure this is the same secret as used for signing the token
 
 const verifyToken = (req, res, next) => {
-  const token = req.header('Authorization');  // Expect token in the Authorization header (Bearer token)
+  const token = req.headers['authorization']?.split(' ')[1];
+console.log('Authorization Header:', req.headers['authorization']);
+console.log('Extracted Token:', token); // Get token from Authorization header.
 
   if (!token) {
-    return res.status(401).json({ message: 'Access denied, no token provided!' });
+    return res.status(403).json({ error: 'Token is required' });
   }
 
   try {
-    // Remove the "Bearer " prefix and verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Attach user data (payload) to the request object
-    next(); // Pass control to the next middleware/route handler
+    const decoded = jwt.verify(token, JWT_SECRET);    // Verify the token.
+    req.user = decoded; // Attach user info to the request object.
+    next();
   } catch (err) {
-    return res.status(400).json({ message: 'Invalid or expired token!' });
+    return res.status(403).json({ error: 'Invalid token' });
   }
 };
 

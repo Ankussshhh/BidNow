@@ -11,6 +11,14 @@
           <p class="description">{{ auction.description }}</p>
           <p class="current-bid">Current Bid: INR {{ auction.currentBid }}</p>
           <button class="bid-btn">Place a Bid</button>
+          <!-- New Delete Button -->
+          <button 
+  class="delete-btn" 
+  (click)="deleteAuction(auction._id)" 
+  [disabled]="isDeleting">
+  {{ isDeleting ? 'Deleting...' : 'Delete' }}
+</button>
+
         </div>
       </div>
     </div>
