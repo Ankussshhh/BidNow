@@ -1,7 +1,7 @@
 
-# 🎉 AuctionBazar 🎉
+# 🎉 BidNow 🎉
 
-**AuctionBazar** is an innovative online auction platform that empowers users to buy and sell items in real-time auctions. With secure authentication, real-time bidding, and a user-friendly interface, AuctionBazar is your go-to solution for online auctions.
+**BidNow** is an innovative online auction platform that empowers users to buy and sell items in real-time auctions. With secure authentication, real-time bidding, and a user-friendly interface, BidNow is your go-to solution for online auctions.
 
 ---
 
@@ -41,7 +41,7 @@
 
 ## 🚀 Project Setup 🚀
 
-Follow the steps below to set up **AuctionBazar** on your local machine.
+Follow the steps below to set up **BidNow** on your local machine.
 
 ### 🔑 Prerequisites
 
@@ -57,8 +57,8 @@ Follow the steps below to set up **AuctionBazar** on your local machine.
 Clone the repository to your local machine:
 
 ```bash
-git clone https://github.com/your-username/AuctionBazar.git
-cd AuctionBazar
+git clone https://github.com/your-username/BidNow.git
+cd BidNow
 ```
 
 ### 2. ⚙️ Backend Setup
@@ -77,7 +77,7 @@ In the `backend` folder, create a `.env` file and add the following:
 ```
 EMAIL_USER=your-email@example.com
 EMAIL_PASSWORD=your-email-password
-MONGO_URI=mongodb://localhost:27017/auctionbazar
+MONGO_URI=mongodb://localhost:27017/BidNow
 JWT_SECRET=your-jwt-secret
 PORT=3000
 ```
@@ -124,7 +124,7 @@ The frontend will be available at `http://localhost:4200`.
 
 ### 6. 🏠 Open the Application
 
-Once both the frontend and backend are running, open your browser and visit `http://localhost:4200` to start using **AuctionBazar**!
+Once both the frontend and backend are running, open your browser and visit `http://localhost:4200` to start using **BidNow**!
 
 ---
 
@@ -147,7 +147,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## 👩‍💻 Contributions 👨‍💻
 
-We welcome contributions! If you'd like to contribute to **AuctionBazar**, please fork the repository, create a feature branch, and submit a pull request. Ensure your code passes all tests and adheres to the project's coding standards.
+We welcome contributions! If you'd like to contribute to **BidNow**, please fork the repository, create a feature branch, and submit a pull request. Ensure your code passes all tests and adheres to the project's coding standards.
 
 ---
 
