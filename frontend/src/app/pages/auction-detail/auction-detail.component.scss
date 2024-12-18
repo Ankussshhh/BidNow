@@ -1,0 +1,146 @@
+.auction-detail {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background-color: #f9f9f9;
+}
+
+.auction-detail-container {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1200px;
+  width: 100%;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.auction-left {
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  .auction-image-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .auction-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+
+  .auction-info {
+    .auction-title {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .auction-description {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    .current-bid {
+      font-size: 1.3rem;
+      color: #4CAF50;
+      font-weight: bold;
+    }
+
+    .timer {
+      font-size: 1.2rem;
+      color: #FF5722;
+      margin-top: 15px;
+    }
+
+    .place-bid-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #4CAF50;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.3s ease;
+      margin-top: 20px;
+
+      &:hover {
+        background-color: #45a049;
+      }
+    }
+  }
+}
+
+.auction-right {
+  flex: 0.35;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  
+  h3 {
+    font-size: 1.4rem;
+    color: #333;
+    margin-bottom: 15px;
+  }
+
+  .bid-list {
+    max-height: 400px;
+    overflow-y: auto;
+
+    .bid-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      font-size: 1.1rem;
+      color: #555;
+
+      .bid-user {
+        font-weight: bold;
+        color: #333;
+      }
+
+      .bid-amount {
+        color: #4CAF50;
+      }
+
+      .bid-time {
+        color: #777;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .auction-detail-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .auction-left, .auction-right {
+    width: 100%;
+  }
+
+  .auction-info .auction-title {
+    font-size: 1.3rem;
+  }
+
+  .auction-description {
+    font-size: 1rem;
+  }
+
+  .place-bid-btn {
+    font-size: 1.1rem;
+  }
+}

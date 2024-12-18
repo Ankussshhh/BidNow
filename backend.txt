@@ -1,0 +1,628 @@
+/controllers/auth.controller.js
+
+const User = require('../models/User'); // Import the User model
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const Auction = require('../models/Auction'); // Auction model
+
+// Static JWT Token for demonstration
+const STATIC_TOKEN = 'ZXC1bnmap';  // This is the static token you provided
+const JWT_SECRET = process.env.JWT_SECRET || 'ZXC1bnmap';  // Ensure the JWT secret matches across the app
+
+
+// Sign Up Function
+exports.signUp = async (req, res) => {
+  const { name, email, password } = req.body; // Include name in request
+
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists!' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ name, email, password: hashedPassword });
+
+    await user.save();
+
+    res.status(201).json({ message: 'User created successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Something went wrong!' });
+  }
+};
+
+exports.createAuction = async (req, res) => {
+  try {
+    const { title, description, startingBid, endTime } = req.body;
+
+    // Ensure the required fields are provided
+    if (!title || !description || !startingBid) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Set default endTime if not provided
+    const auctionEndTime = endTime ? new Date(endTime) : new Date(Date.now() + 24 * 60 * 60 * 1000); // Default to 24 hours from now
+
+    // Create a new auction
+    const auction = new Auction({
+      title,
+      description,
+      startingBid,
+      userId: req.user.id, // Assuming you're attaching user info via JWT token
+      endTime: auctionEndTime,
+    });
+
+    await auction.save();
+
+    res.status(201).json({
+      message: 'Auction created successfully',
+      auction,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+// Login Function
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+  
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+
+    // Validate the password (assuming you have a password hashing mechanism)
+    const isPasswordValid = await user.comparePassword(password); // You should define comparePassword method on User schema
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid password' });
+    }
+
+    // Create JWT payload with user details
+    const payload = { id: user._id, email: user.email };  // Add necessary user data to payload
+    
+    // Sign the token
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });  // Token expiration set to 1 hour
+
+    // Send the token back in response
+    return res.status(200).json({
+      message: 'Login successful',
+      token,
+      name: user.name,  // Send name or any other necessary user info
+      userId: user._id,  // Send userId for frontend usage
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Forgot Password Function
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'No account found with this email!' });
+    }
+
+    // Generate a reset token (use JWT for simplicity)
+    const resetToken = jwt.sign(
+      { id: user._id },  // Ensure this payload contains required information (e.g., user ID)
+      process.env.JWT_SECRET,  // Make sure this secret is defined and consistent
+      { expiresIn: '1h' }  // Use reasonable expiration
+    );
+    res.json({ token }); 
+
+    // Send reset password link via email (using nodemailer)
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'your_email@gmail.com',
+        pass: 'your_email_password',
+      },
+    });
+
+    const resetLink = `http://localhost:4200/reset-password?token=${resetToken}`;
+
+    const mailOptions = {
+      to: email,
+      subject: 'Password Reset Request',
+      text: `Click the following link to reset your password: ${resetLink}`,
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Error sending email!' });
+      }
+      res.status(200).json({ message: 'Password reset link sent successfully' });
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Something went wrong!' });
+  }
+};
+
+// Reset Password Function
+exports.resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, 'ZXC1bnmap'); // Verify the reset token
+    const userId = decoded.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid user!' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Something went wrong!' });
+  }
+};
+
+exports.protected = (req, res) => {
+  res.status(200).json({ message: 'This is a protected route.' });
+};
+
+
+
+/middleware/auth.middleware.js
+
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'ZXC1bnmap';  // Ensure the secret is the same as in login
+const Auction = require('../models/Auction'); // Adjust the path based on your project structure
+
+const verifyToken = (req, res, next) => {
+  const authHeader = req.header('Authorization');
+  
+  if (!authHeader) {
+    return res.status(401).json({ message: 'No authorization header provided' });
+  }
+
+  const token = authHeader.replace('Bearer ', '');  // Extract token from the header
+  if (!token) {
+    return res.status(401).json({ message: 'Token is missing' });
+  }
+
+  try {
+    console.log('Verifying token:', token);  // Log token for debugging
+    const decoded = jwt.verify(token, JWT_SECRET);  // Verify the token with the secret
+    req.user = decoded;  // Attach the decoded user info to the request
+    next();
+  } catch (err) {
+    console.error('Token verification failed:', err.message);  // Log the error for debugging
+    return res.status(403).json({ message: 'Invalid or malformed token' });
+  }
+};
+
+module.exports = verifyToken;
+
+/models/Auctions.js
+
+const mongoose = require('mongoose');
+
+const auctionSchema = new mongoose.Schema({
+  title: String,
+  description: String,
+  startingBid: Number,
+  currentBid: Number,
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  imageUrl: String,
+  endTime: { 
+    type: Date,
+    default: function() {
+      return this.endTime || Date.now() + 23 * 60 * 60 * 1000; // If endTime is provided, use it; otherwise, default to 24 hours
+    },
+  },
+  bids: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      bidAmount: Number,
+      timestamp: { type: Date, default: Date.now },
+    },
+  ],
+  isExpired: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+module.exports = mongoose.model('Auction', auctionSchema);
+
+/models/User.js
+
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  name: { type: String, required: true },
+});
+
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+  
+  try {
+    this.password = await bcrypt.hash(this.password, 10);
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (err) {
+    throw new Error('Error comparing passwords');
+  }
+};
+
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;
+
+/routes/auctionRoutes.js
+
+const express = require('express');
+const router = express.Router();
+const Auction = require('../models/Auction'); // Import the Auction model
+const verifyToken = require('../middleware/auth.middleware'); // Token verification middleware
+
+// POST /api/auctions/create - Create a new auction
+router.post('/create', async (req, res) => {
+  console.log('Incoming request body:', req.body); // Debugging log
+
+  try {
+    const { title, description, startingBid, currentBid, imageUrl, userId, expiryTime } = req.body;
+
+    // Validation for required fields
+    if (!title || !description || startingBid === undefined || !imageUrl || !userId) {
+      console.error('Validation failed:', { title, description, startingBid, imageUrl, userId });
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    // Set expiry time (either user-provided or default to 24 hours from now)
+    const auctionExpiryTime = expiryTime ? new Date(expiryTime) : new Date(Date.now() + 24 * 60 * 60 * 1000); // Default to 24 hours if not provided
+
+    // Create a new auction
+    const newAuction = new Auction({
+      title,
+      description,
+      startingBid,
+      currentBid: currentBid || startingBid, // Set currentBid to startingBid if not provided
+      imageUrl,
+      userId,
+      expiryTime: auctionExpiryTime, // Save the expiry time in the database
+    });
+
+    // Save the auction to MongoDB
+    await newAuction.save();
+
+    // Respond with the created auction
+    res.status(201).json(newAuction);
+  } catch (error) {
+    console.error('Error creating auction:', error.message || error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// GET /api/auctions - Fetch all auctions
+router.get('/', async (req, res) => {
+  try {
+    const auctions = await Auction.find();
+    res.status(200).json(auctions);
+  } catch (err) {
+    console.error('Error fetching auctions:', err.message || err);
+    res.status(500).json({ message: 'Error fetching auctions' });
+  }
+});
+
+router.get('/:id', async (req, res) => {
+  try {
+    const auction = await Auction.findById(req.params.id);
+    if (!auction) {
+      return res.status(404).json({ message: 'Auction not found.' });
+    }
+    res.status(200).json(auction);
+  } catch (err) {
+    console.error('Error fetching auction:', err.message || err);
+    res.status(500).json({ message: 'Error fetching auction.' });
+  }
+});
+
+
+// GET /api/auctions/user/:userId - Fetch all auctions posted by a specific user
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    // Fetch auctions by userId
+    const auctions = await Auction.find({ userId });
+
+    if (!auctions.length) {
+      return res.status(404).json({ message: 'No auctions found for this user.' });
+    }
+
+    res.status(200).json(auctions);
+  } catch (err) {
+    console.error('Error fetching auctions by user:', err.message || err);
+    res.status(500).json({ message: 'Error fetching auctions.' });
+  }
+});
+
+
+// DELETE route for auction deletion
+router.delete('/delete-bid/:auctionId/:bidId', verifyToken, async (req, res) => {
+  const { auctionId, bidId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    // Find and validate auction
+    const auction = await Auction.findById(auctionId);
+    if (!auction) {
+      return res.status(404).json({ message: 'Auction not found.' });
+    }
+
+    // Validate bid ownership
+    const bidIndex = auction.bids.findIndex(
+      (bid) => bid._id.toString() === bidId && bid.userId.toString() === userId
+    );
+    if (bidIndex === -1) {
+      return res.status(404).json({ message: 'Bid not found or unauthorized.' });
+    }
+
+    // Remove bid
+    auction.bids.splice(bidIndex, 1);
+    auction.currentBid = auction.bids.length
+      ? Math.max(...auction.bids.map((bid) => bid.bidAmount))
+      : auction.startingPrice;
+
+    await auction.save();
+
+    res.status(200).json({ message: 'Bid deleted successfully.', auction });
+  } catch (err) {
+    console.error('Error deleting bid:', err);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+
+
+// PUT /api/auctions/:id - Update an auction by ID (with ownership check)
+router.put('/:id', verifyToken, async (req, res) => {
+  try {
+    const { title, description, startingBid, currentBid, imageUrl } = req.body;
+
+    // Find the auction
+    const auction = await Auction.findById(req.params.id);
+    if (!auction) {
+      return res.status(404).json({ message: 'Auction not found.' });
+    }
+
+    // Check if the logged-in user is the owner
+    if (auction.userId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You are not authorized to update this auction.' });
+    }
+
+    // Update auction details
+    auction.title = title || auction.title;
+    auction.description = description || auction.description;
+    auction.startingBid = startingBid || auction.startingBid;
+    auction.currentBid = currentBid || auction.currentBid;
+    auction.imageUrl = imageUrl || auction.imageUrl;
+
+    // Save the updated auction
+    await auction.save();
+
+    res.status(200).json({ message: 'Auction updated successfully.', auction });
+  } catch (err) {
+    console.error('Error updating auction:', err.message || err);
+    res.status(500).json({ message: 'Error updating auction.' });
+  }
+});
+
+// Route to fetch auction details by ID
+router.get('/auction/:id', async (req, res) => {
+  const auctionId = req.params.id;
+  try {
+    const auction = await Auction.findById(auctionId);
+    if (!auction) {
+      return res.status(404).json({ message: 'Auction not found' });
+    }
+    res.json(auction); // Ensure expiryTime is included
+  } catch (error) {
+    console.error('Error fetching auction:', error);
+    res.status(500).json({ error: 'Error fetching auction details' });
+  }
+});
+
+
+router.put('/place-bid/:id', verifyToken, async (req, res) => {
+  const auctionId = req.params.id; // Correct parameter usage
+  const { bidAmount } = req.body; // Extract bidAmount from the body
+  const userId = req.user.id; // Extract user ID from the token
+
+  try {
+    // Validate bidAmount
+    if (!bidAmount || isNaN(bidAmount) || bidAmount <= 0) {
+      return res.status(400).json({ message: 'Invalid bid amount.' });
+    }
+
+    // Find the auction
+    const auction = await Auction.findById(auctionId);
+    if (!auction) {
+      return res.status(404).json({ message: 'Auction not found.' });
+    }
+
+    // Check if the auction has expired using the `isExpired` virtual field
+    if (auction.isExpired) {
+      return res.status(400).json({ message: 'Auction has expired.' });
+    }
+
+    // Check if bid is higher than the current bid
+    if (bidAmount <= auction.currentBid) {
+      return res.status(400).json({ message: 'Bid must be higher than the current bid.' });
+    }
+
+    // Update auction with the new bid
+    auction.currentBid = bidAmount;
+    auction.bids.push({ userId, bidAmount, timestamp: new Date() });
+
+    // Save the updated auction
+    await auction.save();
+
+    res.status(200).json({ message: 'Bid placed successfully.', auction });
+  } catch (err) {
+    console.error('Error placing bid:', err);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+
+
+
+
+
+module.exports = router;
+
+
+/routes/authRoutes.js
+
+const express = require('express');
+const nodemailer = require('nodemailer');
+const User = require('../models/User'); 
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const authController = require('../controllers/auth.controller');
+const verifyToken = require('../middleware/auth.middleware');
+const Auction = require('../models/Auction'); 
+
+const router = express.Router();
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail', 
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
+// Forgot password route
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Check if the user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
+    }
+
+    // Generate a password reset token (you can store it in the database or JWT)
+    const resetToken = crypto.randomBytes(20).toString('hex'); // or use JWT for token generation
+    const resetLink = `http://localhost:4200/reset-password?token=${resetToken}`;
+
+    // Save the token in the user record (you may also store expiry date)
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration
+    await user.save();
+
+    // Send email with the reset link
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      text: `You requested a password reset. Please click the link below to reset your password:\n\n${resetLink}`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return res.status(500).json({ message: 'Error sending email' });
+      }
+      res.status(200).json({ message: 'Password reset email sent' });
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Correctly linked route
+router.post('/login', authController.login);
+router.post('/signup', authController.signUp);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
+
+router.get('/protected', verifyToken, authController.protected);
+
+module.exports = router;
+
+.env
+
+PORT=3000
+DB_URI=mongodb+srv://ankushpatil2002:asdasd@cluster0.wr4w4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+EMAIL_USER=fabankush27@gmail.com
+EMAIL_PASS=ZXC1bnmap@
+JWT_SECRET=ZXC1bnmap
+
+
+Server.js
+
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const auctionRoutes = require('./routes/auctionRoutes'); // Import auction routes
+const authRoutes = require('./routes/authRoutes');
+require('dotenv').config();
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(bodyParser.json()); // Parse JSON bodies
+app.use(cors({
+  origin: 'http://localhost:4200',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],   // Frontend URL
+  credentials: true // Allow cookies
+})); // Enable CORS for cross-origin requests
+
+// Middleware for JSON body parsing
+app.use(express.json());
+
+// Routes
+app.use('/api/auctions', auctionRoutes); // Auction routes
+app.use('/api/auth', authRoutes);
+
+// MongoDB Connection
+const DB_URI = process.env.DB_URI || 'mongodb://your-db-uri';
+mongoose
+  .connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.log('MongoDB connection error:', err));
+
+// Start the server
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
+
+

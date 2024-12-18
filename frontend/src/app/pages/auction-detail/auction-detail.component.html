@@ -1,0 +1,36 @@
+<div class="auction-detail">
+  <div class="auction-detail-container">
+    <!-- Left Section (Auction Details) -->
+    <div class="auction-left">
+      <div class="auction-image-container">
+        <img [src]="auction.imageUrl" alt="Auction Item" class="auction-image" />
+      </div>
+      <div class="auction-info">
+        <h1 class="auction-title">{{ auction.title }}</h1>
+        <p class="auction-description">{{ auction.description }}</p>
+        <div class="auction-price">
+          <span class="current-bid">Current Bid: ${{ auction.currentBid }}</span>
+        </div>
+        <div class="timer">
+          <span>{{ remainingTime }}</span>
+        </div>
+        <button 
+          *ngIf="!auction.isExpired" 
+          class="place-bid-btn" 
+          (click)="placeBid()">Place Bid</button>
+      </div>
+    </div>
+
+    <!-- Right Section (Bid History) -->
+    <div class="auction-right">
+      <h3>Bid History</h3>
+      <div class="bid-list">
+        <div *ngFor="let bid of auction.bids" class="bid-item">
+          <div class="bid-user">{{ bid.userId }}</div>
+          <div class="bid-amount">{{ bid.bidAmount }} USD</div>
+          <div class="bid-time">{{ bid.timestamp | date:'short' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

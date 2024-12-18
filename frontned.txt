@@ -1,0 +1,204 @@
+/app/interceptor/auth.interceptor.js
+
+import { Injectable } from '@angular/core';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const token = localStorage.getItem('authToken');  // Get the token from localStorage
+
+    if (token) {
+      // Clone the request and add the Authorization header
+      const clonedRequest = req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`,  // Add token to the Authorization header
+        },
+      });
+
+      return next.handle(clonedRequest);  // Pass the cloned request with the token
+    }
+
+    return next.handle(req);  // No token, pass the original request
+  }
+}
+
+/app/services/auction.services.js
+
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth.service'; // Import AuthService
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuctionService {
+  private baseUrl = 'http://localhost:3000/api/auctions'; // Base URL for the auctions API
+
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService // Inject AuthService to get the token
+  ) {}
+
+  // Delete auction by ID
+  deleteBid(auctionId: string, bidId: string): Observable<any> {
+    const token = this.authService.getToken(); // Get the token from the AuthService
+  
+    if (!token) {
+      return new Observable((observer) => {
+        observer.error('No token found');
+      });
+    }
+  
+    return this.http.delete(
+      `${this.baseUrl}/delete-bid/${auctionId}/${bidId}`,
+      {
+        headers: new HttpHeaders().set('Authorization', `Bearer ${token}`),
+      }
+    );
+  }
+  
+
+  // Get auction details by ID
+  getAuctionById(id: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${id}`);
+  }
+
+  // AuctionService - placeBid method (Updated)
+  placeBid(auctionId: string, bidData: { bidAmount: number }): Observable<any> {
+    const token = this.authService.getToken(); // Get the token from the AuthService
+  
+    if (!token) {
+      return new Observable((observer) => {
+        observer.error('No token found');
+      });
+    }
+  
+    return this.http.put(
+      `${this.baseUrl}/place-bid/${auctionId}`, // Corrected URL
+      { bidAmount: bidData.bidAmount },
+      {
+        headers: new HttpHeaders().set('Authorization', `Bearer ${token}`),
+      }
+    );
+  }
+  
+  
+  
+}
+
+/app/services/auth.services.js
+
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class AuthService {
+  private apiUrl = 'http://localhost:3000/api/auth'; // Base API URL
+  private userSubject = new BehaviorSubject<{ isLoggedIn: boolean; name: string | null }>({
+    isLoggedIn: !!localStorage.getItem('authToken'),
+    name: this.getStoredUserName(),
+  });
+
+  user$ = this.userSubject.asObservable();
+
+  constructor(private http: HttpClient) {}
+
+  setUserData(token: string, name: string, userId: string): void {
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('name', name);
+    localStorage.setItem('userId', userId);
+    this.userSubject.next({ isLoggedIn: true, name });
+  }
+
+  clearUserData(): void {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('name');
+    localStorage.removeItem('userId');
+    this.userSubject.next({ isLoggedIn: false, name: null });
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
+  }  
+
+  getUserId(): string | null {
+    return localStorage.getItem('userId');
+  }
+
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('authToken');
+  }
+
+  // Added method to get user data
+  getUserData(): Observable<{ id: string | null, name: string | null }> {
+    const userData = {
+      id: this.getUserId(),
+      name: this.getStoredUserName(),
+    };
+    return new BehaviorSubject(userData).asObservable();
+  }
+
+  private getStoredUserName(): string | null {
+    return localStorage.getItem('name');
+  }
+
+  login(email: string, password: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/login`, { email, password }).pipe(
+      tap((response: any) => {
+        if (response && response.token) {
+          this.setUserData(response.token, response.name, response.userId);
+        }
+      })
+    );
+  }
+
+  logout(): void {
+    this.clearUserData();
+  }
+}
+
+
+/app/app-routing.module.js
+
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { HomeComponent } from './pages/home/home.component';
+import { LoginComponent } from './pages/login/login.component';
+import { CreateBidComponent } from './pages/create-bid/create-bid.component';
+import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component'
+import { ViewAuctionsComponent } from './pages/view-auctions/view-auctions.component'
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component'
+import { SignupComponent } from './pages/signup/signup.component'
+import { AuthGuard } from './auth.guard';
+import { MyBidsComponent } from './pages/my-bids/my-bids.component';
+import { EditBidComponent } from './pages/edit-bid/edit-bid.component';
+import { AuctionDetailComponent } from './pages/auction-detail/auction-detail.component';
+
+
+const routes: Routes = [
+  { path: 'auction/:id', component: AuctionDetailComponent },
+  { path: 'edit-bid/:id', component: EditBidComponent },
+  { path: 'my-bids', component: MyBidsComponent },
+  { path: 'signup', component: SignupComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'auctions', component: ViewAuctionsComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'create-bid', component: CreateBidComponent, canActivate: [AuthGuard] },
+  { path: 'login', component: LoginComponent },
+  { path: '', component: HomeComponent },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+

@@ -1,0 +1,58 @@
+<div class="dashboard">
+  <header class="dashboard-header">
+    <h1>Admin Dashboard</h1>
+  </header>
+
+  <!-- Users Section -->
+  <section class="dashboard-section">
+    <h2>Manage Users</h2>
+    <table class="dashboard-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+          <td>
+            <button class="btn delete" (click)="deleteUser(user._id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Auctions Section -->
+  <section class="dashboard-section">
+    <h2>Manage Auctions</h2>
+    <table class="dashboard-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Description</th>
+          <th>Starting Bid</th>
+          <th>Current Bid</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let auction of auctions">
+          <td>{{ auction.title }}</td>
+          <td>{{ auction.description }}</td>
+          <td>{{ auction.startingBid }}</td>
+          <td>{{ auction.currentBid }}</td>
+          <td>
+            <button class="btn delete" (click)="deleteAuction(auction._id)">Delete</button>
+            <button class="btn edit" (click)="editAuction(auction)">Edit</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>
